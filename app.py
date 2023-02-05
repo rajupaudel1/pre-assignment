@@ -24,5 +24,10 @@ def station_list():
     # pandas function can generate html table
     return station_data.to_html(header="true", table_id="table")
 
+@app.route('/station_info')
+def station_info():
+    station_info = backend.depature_return_info()
+    return station_info.to_html(header="true", table_id="table")
 
 app.run()
+

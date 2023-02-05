@@ -38,11 +38,27 @@ class Backend:
         data['Duration(minutes)'] = data['Duration (sec.)'] / 60
 
         # final needed columns
-        needed_columns = ['Departure station name', 'Return station name', 'Distance(Km)', 'Duration(minutes)']
+        needed_columns = ['Departure_station_name', 'Return_station_name', 'Distance(Km)', 'Duration(minutes)']
 
         # select needed columns
         data = data[needed_columns]
         return data
+
+    def depature_return_info(self):
+        sql_query_departure = f"select Departure_station_name as station_name, count(Departure_station_id) " \
+                              f"as departure_times from " \
+                              f"{self.journey_table_name} GROUP BY Departure_station_id"
+
+        depature_id_info = pd.read_sql(sql_query_departure, con=self.connection)
+
+        sql_query_return = f"select Return_station_name as station_name, count(Return_station_id) as " \
+                           f"return_times from {self.journey_table_name} " \
+                           f"GROUP BY Return_station_id"
+
+        return_id_info = pd.read_sql(sql_query_return, con=self.connection)
+
+        merged_df = depature_id_info.merge(return_id_info, on=['station_name'])
+        return merged_df
 
     def push_journey_data(self):
         """
@@ -102,4 +118,10 @@ class Backend:
         # concat those above list of dataframe
         data = pd.concat(df_lists, ignore_index=True)
 
+        # rename some few columns in proper order:
+        data = data.rename(columns={'Departure station id': 'Departure_station_id',
+                                    'Return station id': 'Return_station_id',
+                                    'Departure station name': 'Departure_station_name',
+                                    'Return station name': 'Return_station_name'})
+        data['Departure_station_id'] = data['Departure_station_id'].astype(int)
         return data

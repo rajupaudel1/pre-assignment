@@ -6,12 +6,13 @@ class Backend:
     """
     simple backend class
     """
+
     def __init__(self, db_name: str = 'assignment.db'):
         # name of database
         self.db_name = db_name
 
         # create connection to sqlite
-        self.connection = sqlite3.connect(self.db_name)
+        self.connection = sqlite3.connect(self.db_name, check_same_thread=False)
 
         # journey data table name
         self.journey_table_name = 'journey'
@@ -20,8 +21,28 @@ class Backend:
         # self.push_journey_data()
         print("journey data saved to database successfully")
 
-    def get_journey_data(self):
-        pass
+    def list_journey(self, hardcoded_length: int = 100):
+        """
+        Im not implementing pagination, so, Im putting hard corded limit of first 100  journey here
+        """
+        needed_fields = ['Duration (sec.)', 'Covered distance (m)', 'Departure station name', 'Return station name']
+        sql_query = f" select * from {self.journey_table_name} LIMIT {hardcoded_length}"
+        data = pd.read_sql(sql_query, con=self.connection)
+
+        data = data[needed_fields]
+
+        # display in km for duration
+        data['Distance(Km)'] = data['Covered distance (m)'] / 1000
+
+        # convert seconds to minute
+        data['Duration(minutes)'] = data['Duration (sec.)'] / 60
+
+        # final needed columns
+        needed_columns = ['Departure station name', 'Return station name', 'Distance(Km)', 'Duration(minutes)']
+
+        # select needed columns
+        data = data[needed_columns]
+        return data
 
     def push_journey_data(self):
         """
@@ -45,7 +66,7 @@ class Backend:
         remove unnecessary columns from meta_data. There are same information with different naming like nimi, name,
         namn, etc and also, we don't need operator info as well as it says data belongs to specific operator.
         """
-        remove_cols_list = ['FID', 'Nimi','Namn','Osoite','Kaupunki','Stad','Operaattor']
+        remove_cols_list = ['FID', 'Nimi', 'Namn', 'Osoite', 'Kaupunki', 'Stad', 'Operaattor']
 
         # remove columns
         meta_df = meta_df.drop(remove_cols_list, axis=1)

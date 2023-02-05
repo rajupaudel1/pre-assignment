@@ -1,5 +1,6 @@
 import pandas as pd
 import sqlite3
+import os
 
 
 class Backend:
@@ -11,6 +12,9 @@ class Backend:
         # name of database
         self.db_name = db_name
 
+        # delete database in the start:
+        self.remove_database()
+
         # create connection to sqlite
         self.connection = sqlite3.connect(self.db_name, check_same_thread=False)
 
@@ -18,14 +22,24 @@ class Backend:
         self.journey_table_name = 'journey'
 
         print("saving data to database")
-        # self.push_journey_data()
+        self.push_journey_data()
         print("journey data saved to database successfully")
+
+    def remove_database(self):
+        """
+        This function does basic thing to remove the database if exists. For each application run, it will re-create
+        database
+        """
+        try:
+            os.remove(self.db_name)
+        except OSError:
+            pass
 
     def list_journey(self, hardcoded_length: int = 100):
         """
         Im not implementing pagination, so, Im putting hard corded limit of first 100  journey here
         """
-        needed_fields = ['Duration (sec.)', 'Covered distance (m)', 'Departure station name', 'Return station name']
+        needed_fields = ['Duration (sec.)', 'Covered distance (m)', 'Departure_station_name', 'Return_station_name']
         sql_query = f" select * from {self.journey_table_name} LIMIT {hardcoded_length}"
         data = pd.read_sql(sql_query, con=self.connection)
 
@@ -44,12 +58,12 @@ class Backend:
         data = data[needed_columns]
         return data
 
-    def depature_return_info(self):
+    def departure_return_info(self):
         sql_query_departure = f"select Departure_station_name as station_name, count(Departure_station_id) " \
                               f"as departure_times from " \
                               f"{self.journey_table_name} GROUP BY Departure_station_id"
 
-        depature_id_info = pd.read_sql(sql_query_departure, con=self.connection)
+        departure_id_info = pd.read_sql(sql_query_departure, con=self.connection)
 
         sql_query_return = f"select Return_station_name as station_name, count(Return_station_id) as " \
                            f"return_times from {self.journey_table_name} " \
@@ -57,7 +71,8 @@ class Backend:
 
         return_id_info = pd.read_sql(sql_query_return, con=self.connection)
 
-        merged_df = depature_id_info.merge(return_id_info, on=['station_name'])
+        # merged return and departure info for same stations
+        merged_df = departure_id_info.merge(return_id_info, on=['station_name'])
         return merged_df
 
     def push_journey_data(self):

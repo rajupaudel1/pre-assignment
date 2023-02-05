@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask
 
 from backend.backend import Backend
 
@@ -6,7 +6,7 @@ backend = Backend()
 app = Flask(__name__)
 
 
-@app.route('/journeylist')
+@app.route('/journeylists')
 def journey_list():
     data = backend.list_journey()
 
@@ -14,7 +14,7 @@ def journey_list():
     return data.to_html(header="true", table_id="table")
 
 
-@app.route('/station')
+@app.route('/stations')
 def station_list():
     station_data = backend.load_meta_data()
 
@@ -24,10 +24,11 @@ def station_list():
     # pandas function can generate html table
     return station_data.to_html(header="true", table_id="table")
 
-@app.route('/station_info')
+
+@app.route('/station_infos')
 def station_info():
-    station_info = backend.depature_return_info()
-    return station_info.to_html(header="true", table_id="table")
+    station_return_departure = backend.departure_return_info()
+    return station_return_departure.to_html(header="true", table_id="table")
+
 
 app.run()
-

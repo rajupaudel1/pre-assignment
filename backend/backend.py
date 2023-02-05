@@ -16,6 +16,13 @@ class Backend:
         # journey data table name
         self.journey_table_name = 'journey'
 
+        print("saving data to database")
+        # self.push_journey_data()
+        print("journey data saved to database successfully")
+
+    def get_journey_data(self):
+        pass
+
     def push_journey_data(self):
         """
         This function pushes journey data to sqlite
@@ -38,7 +45,7 @@ class Backend:
         remove unnecessary columns from meta_data. There are same information with different naming like nimi, name,
         namn, etc and also, we don't need operator info as well as it says data belongs to specific operator.
         """
-        remove_cols_list = ['FID, Nimi,Namn,Osoite,Kaupunki,Stad,Operaattor']
+        remove_cols_list = ['FID', 'Nimi','Namn','Osoite','Kaupunki','Stad','Operaattor']
 
         # remove columns
         meta_df = meta_df.drop(remove_cols_list, axis=1)
